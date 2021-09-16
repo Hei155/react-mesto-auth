@@ -11,7 +11,7 @@ function InfoTooltil(props) {
             <div className="popup__container">
             <button className="popup__container-close" type="button" onClick={handleClose}></button>
                 <img className="popup__picture" src={props.popupStatus ? succes : error} alt="Успех"></img>
-                <p className="popup__status">Вы успешно зарегистрировались!</p>
+                <p className="popup__status">{props.popupStatus ? "Вы успешно зарегистрировались!" : "Что-то пошло не так! Попробуйте ещё раз."}</p>
             </div>
         </section>
     )

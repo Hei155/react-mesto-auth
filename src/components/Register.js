@@ -1,6 +1,5 @@
 import  { Link } from "react-router-dom";
 import React from "react";
-import * as auth from '../auth';
 
 export function Register(props) {
 
@@ -17,16 +16,7 @@ export function Register(props) {
 
     function handleSubmit(evt) {
         evt.preventDefault();
-        auth.register(password, email)
-        .then(() => {
-            props.setStatus(true);
-            props.submit(true);
-        })
-        .catch((err) => {
-            console.log(err)
-            props.submit(true);
-            props.setStatus(false);
-        })
+        props.register(password, email)
     }
 
     React.useEffect(() => {
@@ -39,8 +29,8 @@ export function Register(props) {
                 <h2 className="register__title">Регистрация</h2>
                 <form className="register__form" onSubmit={handleSubmit}>
                     <label className="register__field">
-                        <input required className="form__input" placeholder="Email" onChange={handleChangeEmail}/>
-                        <input required className="form__input" placeholder="Пароль" onChange={handleChangePassword}/>
+                        <input required className="form__input" placeholder="Email" onChange={handleChangeEmail} value={email}/>
+                        <input required className="form__input" placeholder="Пароль" onChange={handleChangePassword} value={password}/>
                     </label>
                     <button type="submit" className="form__button" aria-label="Зарегестрироваться">Зарегистрироваться</button>
                 </form>

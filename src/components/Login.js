@@ -1,12 +1,10 @@
 import React from "react";
-import * as auth from '../auth'
-import { withRouter, useHistory } from 'react-router-dom'; 
+import { withRouter } from 'react-router-dom'; 
 
 
 function Login(props) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const history = useHistory();
 
     function handleChangeEmail(evt) {
         setEmail(evt.target.value)
@@ -18,23 +16,24 @@ function Login(props) {
 
     function handleSubmit(evt) {
         evt.preventDefault();
-        auth.authorize(password, email)
-        .then(() => {
-            props.submit(true);
-            props.setStatus(true);
-            props.changeLoginStatus(true);
-            props.changeHeaderLink('Выйти')
-            history.push('/');
-        })
-        .catch((err) => {
-            console.log(err)
-            props.submit(true);
-            props.setStatus(false);
-        })
+        props.login(password, email);
+       
     }
 
     React.useEffect(() => {
         props.changeHeaderLink('Регистрация')
+    }, [])
+
+    React.useEffect(() => {
+        if (localStorage.getItem('email')) {
+            const email = localStorage.getItem('email');
+            setEmail(email);
+        }
+    
+        if (localStorage.getItem('password')) {
+            const password = localStorage.getItem('password');
+            setPassword(password);
+        }
     }, [])
 
     return (
@@ -43,8 +42,8 @@ function Login(props) {
                 <h2 className="register__title">Вход</h2>
                 <form className="register__form" onSubmit={handleSubmit}>
                     <label className="register__field">
-                        <input required className="form__input" placeholder="Email" onChange={handleChangeEmail}/>
-                        <input required className="form__input" placeholder="Пароль" onChange={handleChangePassword}/>
+                        <input required className="form__input" placeholder="Email" onChange={handleChangeEmail} value={email}/>
+                        <input required className="form__input" placeholder="Пароль" onChange={handleChangePassword} value={password}/>
                     </label>
                     <button type="submit" className="form__button" aria-label="Зарегестрироваться">Войти</button>
                 </form>

@@ -9,8 +9,11 @@ import { Footer } from './Footer';
 import { ImagePopup } from './ImagePopup';
 import api from '../utils/api';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
-import { useHistory } from 'react-router-dom'
-import * as auth from '../auth.js';
+import { useHistory, Switch, Route } from 'react-router-dom'
+import { Register } from './Register'
+import Login from './Login';
+import { ProtectedRoute } from './ProtectedRoute';
+import * as auth from '../utils/auth.js';
 
 
 function App() {
@@ -19,7 +22,7 @@ function App() {
     const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
     const [isCardSelected, setIsCardSelected] = React.useState(false);
     const [pictureData, setPictureData] = React.useState({});
-    const [currentUser, setCurrentUser] = React.useState([]);
+    const [currentUser, setCurrentUser] = React.useState({});
     const [headerLink, setHeaderLink] = React.useState('Выйти');
     const [cards, setCards] = React.useState([]);
     const [loginIn, setLoginIn] = React.useState(false);
@@ -30,8 +33,12 @@ function App() {
 
     function handleCardLike(card) {
         const isLike = card.likes.some(i => i._id === currentUser._id);
-        api.changeLikeCardStatus(card._id, isLike).then((newCard) => {
+        api.changeLikeCardStatus(card._id, isLike)
+        .then((newCard) => {
             setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+        })
+        .catch((err) => {
+            console.log(err)
         })
     }
     React.useEffect(() => {
@@ -147,36 +154,71 @@ function App() {
                     console.log(err);
                 })
        }
-       
    }
-   checkToken()
+
+   function register (password, email) {
+    auth.register(password, email)
+        .then(() => {
+            setIsSucces(true);
+            setIsStatusPopupOpen(true);
+        })
+        .catch((err) => {
+            console.log(err)
+            setIsSucces(false);
+            setIsStatusPopupOpen(false);
+        })
+   }
+
+   function login (password, email) {
+    auth.authorize(password, email)
+    .then(() => {
+        setIsStatusPopupOpen(true);
+        setIsSucces(true);
+        setLoginIn(true);
+        changeLink('Выйти')
+        history.push('/');
+    })
+    .catch((err) => {
+        console.log(err)
+        setIsStatusPopupOpen(true);
+        setIsSucces(false);
+    })
+   }
+
+   React.useEffect(() => {
+        checkToken()
+        console.log(localStorage)
+   },[])
 
     return (
     <CurrentUserContext.Provider value={currentUser}>
-      <div className="page">
-          <Header isLoginIn={loginIn} headerLink={headerLink} changeHeaderLink={changeLink} changeEmail={setEmail} email={email}/>
-          <Main
-            isLoginIn={loginIn}
-            changeLoginStatus={setLoginIn}
-            status={isSucces}
-            setStatus={setIsSucces}
-            submit={setIsStatusPopupOpen}
-            changeHeaderLink={changeLink}
-            cardList={cards}
-            onCardDelete={handleCardDelete}
-            onCardLike={handleCardLike}
-            onEditProfile={handleEditProfileClick} 
-            onAddPlace={handleAddPlaceClick} 
-            onEditAvatar={handleEditAvatarClick}
-            onImage={handleCardClick}
-          />
-          <Footer/>
-          <InfoTooltil isPopupOpen={isStatusPopupOpen} setPopup={setIsStatusPopupOpen} isLoginIn={loginIn} popupStatus={isSucces}/>
-          <EditProfilePopup onUpdateUser={handleUpdateUser} isOpen={isEditProfilePopupOpen} onClose={closeAllPopups}></EditProfilePopup>
-          <AddPlacePopup onAddPlace={handleAddPlace} isOpen={isAddPlacePopupOpen} onClose={closeAllPopups}></AddPlacePopup>
-          <ImagePopup name="image-picture" isOpen={isCardSelected} onClose={closeAllPopups} src={pictureData.src} alt={pictureData.alt}/>
-          <EditAvatarPopup onUpdateAvatar={handleUpdateAvata} name="avatar-edit" title="Обновить аватар" isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} text={'Сохранить'}></EditAvatarPopup>
-      </div>
+            <div className="page">
+                <Header isLoginIn={loginIn} headerLink={headerLink} changeHeaderLink={changeLink} changeEmail={setEmail} email={email}/>
+                <Switch>
+                    <ProtectedRoute path="/" loginIn={loginIn} exact
+                        component={Main}
+                        cardList={cards}
+                        onCardDelete={handleCardDelete}
+                        onCardLike={handleCardLike}
+                        onEditProfile={handleEditProfileClick}
+                        onAddPlace={handleAddPlaceClick}
+                        onEditAvatar={handleEditAvatarClick}
+                        onImage={handleCardClick}
+                    />
+                    <Route path="/sign-up"> 
+                        <Register register={register} changeHeaderLink={changeLink}/>
+                    </Route>
+                    <Route path="/sign-in">
+                        <Login login={login} changeHeaderLink={changeLink}/>
+                    </Route>
+                </Switch>
+                <Footer/>
+                <InfoTooltil isPopupOpen={isStatusPopupOpen} setPopup={setIsStatusPopupOpen} isLoginIn={loginIn} popupStatus={isSucces}/>
+                <EditProfilePopup onUpdateUser={handleUpdateUser} isOpen={isEditProfilePopupOpen} onClose={closeAllPopups}></EditProfilePopup>
+                <AddPlacePopup onAddPlace={handleAddPlace} isOpen={isAddPlacePopupOpen} onClose={closeAllPopups}></AddPlacePopup>
+                <ImagePopup name="image-picture" isOpen={isCardSelected} onClose={closeAllPopups} src={pictureData.src} alt={pictureData.alt}/>
+                <EditAvatarPopup onUpdateAvatar={handleUpdateAvata} name="avatar-edit" title="Обновить аватар" isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} text={'Сохранить'}></EditAvatarPopup>
+            </div>
     </CurrentUserContext.Provider>
   );
 }

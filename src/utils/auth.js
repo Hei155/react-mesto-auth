@@ -12,12 +12,7 @@ export const register = (password, email) => {
             email
             })
     })
-    .then((res) => {
-        if (!res.ok) {
-            return Promise.reject(`Error: ${res.status}`);
-        }
-        return res.json();
-    })
+    .then((res) => handleResponse(res));
 }
 
 export const authorize = (password, email) => {
@@ -29,16 +24,12 @@ export const authorize = (password, email) => {
         },
         body: JSON.stringify({password, email})
     })
-    .then((res) => {
-        if (res.status === '400') {
-            return Promise.reject(`Error: ${res.status}`);
-        }
-        else if (res.status === '401') {
-            return Promise.reject(`Error: ${res.status}`)
-        }
-        return res.json();
-    })
-    .then(data => localStorage.setItem('jwt', data.token))
+    .then((res) => handleResponse(res))
+    .then((data) => {
+        localStorage.setItem('jwt', data.token);
+        localStorage.setItem('password', password);
+        localStorage.setItem('email', email);
+    });
 }
 
 export const checkToken = (token) => {
@@ -50,7 +41,12 @@ export const checkToken = (token) => {
             'Authorization': `Bearer ${token}`
         }
     })
-    .then((res) => {
-        return res.json();
-    })
+    .then((res) => handleResponse(res));
 }
+
+function handleResponse(res) {
+    if (!res.ok) {
+      return Promise.reject(`Error: ${res.status}`);
+    }
+    return res.json();
+  }
